@@ -1,0 +1,46 @@
+<!-- public/index.html -->
+<div id="device1" style="padding: 1rem; border: 1px solid #ccc; margin-bottom: 1rem;">
+    <h3>Gerät: Wohnzimmer ESP</h3>
+    <p>Status: <span id="status1">⏳ Wird überprüft...</span></p>
+
+    <h2>LED Steuerung</h2>
+    <label>Rot: <input type="range" min="0" max="255" id="r" oninput="updateColor()"></label><br>
+    <label>Grün: <input type="range" min="0" max="255" id="g" oninput="updateColor()"></label><br>
+    <label>Blau: <input type="range" min="0" max="255" id="b" oninput="updateColor()"></label><br>
+</div>
+
+<div id="preview" style="width:100px;height:50px;margin-top:10px;"></div>
+
+<script>
+    function updateColor() {
+        const r = document.getElementById('r').value;
+        const g = document.getElementById('g').value;
+        const b = document.getElementById('b').value;
+
+        // Preview
+        document.getElementById('preview').style.backgroundColor = `rgb(${r},${g},${b})`;
+
+        // Send to server
+        fetch(`/led?r=${r}&g=${g}&b=${b}`);
+    }
+
+    async function checkDeviceStatus() {
+        const statusEl = document.getElementById('status1');
+        try {
+            const res = await fetch('http://192.168.0.21/set?pin=A3&value=0', { method: 'GET', timeout: 2000 });
+            if (res.ok) {
+                statusEl.textContent = '🟢 Online';
+                statusEl.style.color = 'green';
+            } else {
+                throw new Error();
+            }
+        } catch (err) {
+            statusEl.textContent = '🔴 Offline';
+            statusEl.style.color = 'red';
+        }
+    }
+
+    // Alle 5 Sekunden prüfen
+    setInterval(checkDeviceStatus, 5000);
+    checkDeviceStatus(); // Sofortiger erster Check
+</script>
